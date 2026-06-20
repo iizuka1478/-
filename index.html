@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#2f6f4f" />
+  <title>中学受験サポート</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- ヘッダー -->
+  <header class="app-header">
+    <h1>🎓 中学受験サポート</h1>
+    <p class="home-label" id="homeLabel">基準駅: -</p>
+  </header>
+
+  <!-- メイン表示エリア -->
+  <main id="view"></main>
+
+  <!-- 下部ナビ（スマホ向け） -->
+  <nav class="tabbar">
+    <button class="tab active" data-tab="list">
+      <span class="ic">🏫</span><span>学校一覧</span>
+    </button>
+    <button class="tab" data-tab="calendar">
+      <span class="ic">📅</span><span>カレンダー</span>
+    </button>
+    <button class="tab" data-tab="settings">
+      <span class="ic">⚙️</span><span>設定</span>
+    </button>
+  </nav>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

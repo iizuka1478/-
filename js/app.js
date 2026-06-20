@@ -4,8 +4,28 @@
    ============================================================ */
 
 const STORAGE_KEY = "jh-exam-home";
+const SCHOOLS_KEY = "jh-exam-userschools";
 const view = document.getElementById("view");
 const homeLabel = document.getElementById("homeLabel");
+
+/* ---------- 自分で追加した学校（この端末に保存）---------- */
+function loadUserSchools() {
+  try {
+    const arr = JSON.parse(localStorage.getItem(SCHOOLS_KEY));
+    if (Array.isArray(arr)) return arr;
+  } catch (e) {}
+  return [];
+}
+function saveUserSchools(arr) {
+  localStorage.setItem(SCHOOLS_KEY, JSON.stringify(arr));
+}
+/* 標準データ(data.js) ＋ 自分で追加した学校 をまとめて返す */
+function getAllSchools() {
+  return [...SCHOOLS, ...loadUserSchools().map((s) => ({ ...s, _custom: true }))];
+}
+function findSchool(id) {
+  return getAllSchools().find((x) => x.id === id);
+}
 
 /* ---------- 自宅最寄り駅の読み込み/保存 ---------- */
 function loadHome() {
@@ -77,7 +97,7 @@ function esc(s) {
 let currentSort = "deviation";
 
 function renderList() {
-  const schools = [...SCHOOLS];
+  const schools = getAllSchools();
   schools.sort((a, b) => {
     switch (currentSort) {
       case "deviation": return (b.deviation || 0) - (a.deviation || 0);
@@ -99,6 +119,7 @@ function renderList() {
         <option value="exam">受験日が早い順</option>
         <option value="capacity">募集人数が多い順</option>
       </select>
+      <button class="btn btn-outline add-btn" id="addBtn">＋ 学校を追加</button>
     </div>
     <p class="section-title">登録校 ${schools.length} 校</p>
   `;
@@ -115,6 +136,7 @@ function renderList() {
           <div>
             <p class="card-name">${esc(s.name)}</p>
             <span class="badge ${esc(s.type)}">${esc(s.type)}</span>
+            ${s._custom ? `<span class="badge custom">追加</span>` : ""}
           </div>
           <div class="dev">
             <div class="num">${s.deviation ?? "—"}</div>
@@ -139,6 +161,7 @@ function renderList() {
     currentSort = e.target.value;
     renderList();
   };
+  document.getElementById("addBtn").onclick = () => renderAddForm();
   view.querySelectorAll(".card").forEach((c) => {
     c.onclick = () => renderDetail(c.dataset.id);
   });
@@ -148,7 +171,7 @@ function renderList() {
    学校詳細
    ============================================================ */
 function renderDetail(id) {
-  const s = SCHOOLS.find((x) => x.id === id);
+  const s = findSchool(id);
   if (!s) return renderList();
   const km = fmtKm(schoolDistance(s));
   const mapsUrl =
@@ -211,9 +234,18 @@ function renderDetail(id) {
         ${s.url ? `<a class="btn btn-outline" href="${esc(s.url)}" target="_blank" rel="noopener">公式サイト</a>` : ""}
         ${mapsUrl ? `<a class="btn btn-primary" href="${mapsUrl}" target="_blank" rel="noopener">ルート検索</a>` : ""}
       </div>
+      ${s._custom ? `<button class="btn-delete" id="delBtn">この学校を削除</button>` : ""}
     </div>
   `;
   document.getElementById("back").onclick = () => switchTab("list");
+  if (s._custom) {
+    document.getElementById("delBtn").onclick = () => {
+      if (confirm(`「${s.name}」を削除しますか？`)) {
+        saveUserSchools(loadUserSchools().filter((x) => x.id !== id));
+        switchTab("list");
+      }
+    };
+  }
 }
 
 /* ============================================================
@@ -222,7 +254,7 @@ function renderDetail(id) {
 function renderCalendar() {
   const today = todayStr();
   const all = [];
-  for (const s of SCHOOLS) {
+  for (const s of getAllSchools()) {
     for (const e of s.events || []) {
       if (e.date) all.push({ ...e, school: s.name });
     }
@@ -261,6 +293,123 @@ function renderCalendar() {
       </div>`;
   }
   view.innerHTML = html;
+}
+
+/* ============================================================
+   学校を追加（この端末に保存）
+   ============================================================ */
+function renderAddForm() {
+  view.innerHTML = `
+    <button class="detail-back" id="back">← 一覧へ戻る</button>
+    <p class="section-title">学校を追加</p>
+    <div class="info-block">
+      <div class="field">
+        <label>学校名 <span class="req">必須</span></label>
+        <input id="f_name" type="text" placeholder="例: 〇〇中学校" />
+      </div>
+      <div class="field">
+        <label>種別</label>
+        <select id="f_type">
+          <option value="共学">共学</option>
+          <option value="男子校">男子校</option>
+          <option value="女子校">女子校</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>偏差値</label>
+        <input id="f_dev" type="number" step="1" placeholder="例: 55" />
+      </div>
+      <div class="field">
+        <label>募集人数</label>
+        <input id="f_cap" type="number" step="1" placeholder="例: 120" />
+      </div>
+      <div class="field">
+        <label>受験科目（カンマ区切り）</label>
+        <input id="f_sub" type="text" placeholder="例: 国語,算数,理科,社会" />
+      </div>
+      <div class="field">
+        <label>受験日（複数は改行。例: 第1回 2028-01-10）</label>
+        <textarea id="f_exam" rows="3" placeholder="第1回 2028-01-10&#10;第2回 2028-01-12"></textarea>
+      </div>
+      <div class="field">
+        <label>特徴・特色</label>
+        <textarea id="f_feat" rows="3" placeholder="校風や教育方針など"></textarea>
+      </div>
+      <div class="field">
+        <label>住所</label>
+        <input id="f_addr" type="text" placeholder="例: 埼玉県さいたま市…" />
+      </div>
+      <div class="field">
+        <label>最寄り駅</label>
+        <input id="f_sta" type="text" placeholder="例: 〇〇駅 徒歩5分" />
+      </div>
+      <div class="field">
+        <label>緯度・経度（距離計算に使用）</label>
+        <div style="display:flex;gap:8px;">
+          <input id="f_lat" type="number" step="0.0001" placeholder="緯度 例: 35.89" />
+          <input id="f_lng" type="number" step="0.0001" placeholder="経度 例: 139.62" />
+        </div>
+        <p class="hint">Googleマップで学校を長押し（右クリック）すると緯度・経度が出ます。空欄でも登録できますが距離は表示されません。</p>
+      </div>
+      <div class="field">
+        <label>公式サイトURL</label>
+        <input id="f_url" type="url" placeholder="https://…" />
+      </div>
+      <button class="btn btn-primary" id="saveSchool">追加する</button>
+      <div class="save-ok" id="addErr"></div>
+    </div>
+    <p class="hint">※ 追加した学校はこの端末のブラウザに保存されます（他の端末には反映されません）。<br>ご夫婦どちらの端末でも見たい学校は、私（開発側）に伝えていただければ標準データに追加できます。</p>
+  `;
+  document.getElementById("back").onclick = () => switchTab("list");
+  document.getElementById("saveSchool").onclick = saveNewSchool;
+}
+
+function parseExamLines(text) {
+  // 「第1回 2028-01-10」のような行を {name,date} に変換
+  return (text || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const m = line.match(/(\d{4}-\d{2}-\d{2})/);
+      const date = m ? m[1] : null;
+      const name = m ? line.replace(m[1], "").trim() : line;
+      return { name: name || "入試", date, capacity: null };
+    });
+}
+
+function saveNewSchool() {
+  const name = document.getElementById("f_name").value.trim();
+  if (!name) {
+    document.getElementById("addErr").textContent = "⚠ 学校名は必須です";
+    return;
+  }
+  const lat = parseFloat(document.getElementById("f_lat").value);
+  const lng = parseFloat(document.getElementById("f_lng").value);
+  const dev = parseInt(document.getElementById("f_dev").value, 10);
+  const cap = parseInt(document.getElementById("f_cap").value, 10);
+  const school = {
+    id: "u" + Date.now(),
+    name,
+    type: document.getElementById("f_type").value,
+    deviation: isNaN(dev) ? null : dev,
+    level: "",
+    capacity: isNaN(cap) ? null : cap,
+    subjects: document.getElementById("f_sub").value
+      .split(/[,，、]/).map((x) => x.trim()).filter(Boolean),
+    exams: parseExamLines(document.getElementById("f_exam").value),
+    features: document.getElementById("f_feat").value.trim(),
+    address: document.getElementById("f_addr").value.trim(),
+    station: document.getElementById("f_sta").value.trim(),
+    lat: isNaN(lat) ? null : lat,
+    lng: isNaN(lng) ? null : lng,
+    url: document.getElementById("f_url").value.trim(),
+    events: []
+  };
+  const arr = loadUserSchools();
+  arr.push(school);
+  saveUserSchools(arr);
+  switchTab("list");
 }
 
 /* ============================================================

@@ -1,0 +1,44 @@
+name: Deploy to GitHub Pages
+
+# 公開（Public）にしたリポジトリの内容を GitHub Pages へ自動デプロイします。
+# このブランチへ push するたびにサイトが更新されます。
+
+on:
+  push:
+    branches:
+      - claude/school-exam-support-app-45bk1z
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: リポジトリを取得
+        uses: actions/checkout@v4
+
+      - name: Pages を設定（未設定なら自動で有効化）
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: 静的ファイルをアップロード
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "."
+
+      - name: Pages へデプロイ
+        id: deployment
+        uses: actions/deploy-pages@v4

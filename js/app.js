@@ -207,7 +207,7 @@ function renderDetail(id) {
 
       <div class="info-block">
         <h3>基本情報</h3>
-        <div class="kv"><span class="k">偏差値</span><span class="v">${s.deviation ?? "—"}</span></div>
+        <div class="kv"><span class="k">偏差値</span><span class="v">${s.deviation ?? "—"} <small style="color:var(--muted);font-weight:400">（日能研R4）</small></span></div>
         <div class="kv"><span class="k">難易度</span><span class="v">${esc(s.level || "—")}</span></div>
         <div class="kv"><span class="k">募集人数</span><span class="v">${s.capacity ?? "—"} 名</span></div>
         <div class="kv"><span class="k">受験科目</span><span class="v">${(s.subjects || []).join("・") || "—"}</span></div>

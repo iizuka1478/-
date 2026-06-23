@@ -12,9 +12,13 @@
 
    各項目の意味：
      id/name/type("男子校"/"女子校"/"共学")/deviation(偏差値)/level(難易度メモ)
-     capacity(募集人数)/subjects(科目配列)/exams(日程配列 {name,date,capacity})
+     capacity(募集人数)/entranceFee(入学金・円)/firstYearTotal(初年度総額・円, 入学金込み)
+     feeNote(費用の補足・任意)/ratio(倍率, 例 "1.5〜2.3倍")
+     subjects(科目配列)/exams(日程配列 {name,date,capacity})
      features(特色)/address/station(最寄り駅)/lat,lng(座標)/url/events(予定配列 {date,title,type})
      ※ events の type は "説明会"/"文化祭"/"出願"/"受験"/"合格発表"/"その他"
+     ※ 入学金0円・初年度総額0円は公立（無償）を表します。
+     ※ 新規追加の昌平・市立浦和の lat,lng は住所からの推定値です（要確認）。
 
    ◆ 入試日について
      お子さまの受験は 2028年1月〜 のため、入試日は 2028年1月/2月 で
@@ -40,6 +44,9 @@ const SCHOOLS = [
     deviation: 65,
     level: "埼玉私立トップ級・首都圏最難関の併願校。回・コースで大きく変動（代表値 約65、東大特待は最上位クラス）",
     capacity: 240,
+    entranceFee: 250000,
+    firstYearTotal: 1124000,
+    ratio: "1.5〜4.3倍",
     subjects: ["国語", "算数", "理科", "社会"],
     exams: [
       { name: "Ⅰ入試（東大・難関大／約120名）", date: "2028-01-10", capacity: null },
@@ -70,6 +77,9 @@ const SCHOOLS = [
     deviation: 63,
     level: "埼玉私立の難関校。回により幅あり（代表値 約63、特待A・算数特待は上位）",
     capacity: 280,
+    entranceFee: 100000,
+    firstYearTotal: 990000,
+    ratio: "1.5〜2.9倍",
     subjects: ["国語", "算数", "理科", "社会"],
     exams: [
       { name: "第1回（先端）", date: "2028-01-10", capacity: 110 },
@@ -101,6 +111,9 @@ const SCHOOLS = [
     deviation: 63,
     level: "難関校。立教大学への系列推薦が手厚く、ほぼ全員が内部進学可能（代表値 約63、第2回はやや上位）",
     capacity: 140,
+    entranceFee: 300000,
+    firstYearTotal: 1333000,
+    ratio: "2.0〜5.7倍",
     subjects: ["国語", "算数", "理科", "社会"],
     exams: [
       { name: "一般 第1回", date: "2028-01-25", capacity: 100 },
@@ -130,6 +143,9 @@ const SCHOOLS = [
     deviation: 60,
     level: "中堅上位校。近年人気・難易度が上昇傾向（代表値 約60、特待はさらに上位）",
     capacity: 300,
+    entranceFee: 360000,
+    firstYearTotal: 1350000,
+    ratio: "1.5〜2.3倍",
     subjects: ["国語", "算数", "理科", "社会"],
     exams: [
       { name: "第1回①（前半）", date: "2028-01-10", capacity: 150 },
@@ -146,8 +162,8 @@ const SCHOOLS = [
     url: "https://www.omiyakaisei.jp/",
     events: [
       { date: "2026-07-05", title: "第1回学校説明会（中学）", type: "説明会" },
-      { date: "2026-09-13", title: "開成祭（文化祭）1日目", type: "文化祭" },
-      { date: "2026-09-14", title: "開成祭（文化祭）2日目", type: "文化祭" }
+      { date: "2026-09-12", title: "開成祭（文化祭）1日目", type: "文化祭" },
+      { date: "2026-09-13", title: "開成祭（文化祭）2日目", type: "文化祭" }
     ]
   },
   {
@@ -157,6 +173,10 @@ const SCHOOLS = [
     deviation: 51,
     level: "進学/難関大/医学の3コース制。コースで差が大きい（代表値 約51、難関大・医学コースは上位）",
     capacity: 120,
+    entranceFee: 250000,
+    firstYearTotal: 750000,
+    feeNote: "学費本体・諸経費別途／要確認",
+    ratio: "約1.1〜1.6倍（要確認）",
     subjects: ["国語", "算数", "理科", "社会"],
     exams: [
       { name: "第1回（午前・4科）", date: "2028-01-10", capacity: null },
@@ -186,6 +206,9 @@ const SCHOOLS = [
     deviation: 57,
     level: "中堅校。城北学園系列の中高一貫進学校（代表値 約57前後、特待回はやや上位）",
     capacity: 120,
+    entranceFee: 260000,
+    firstYearTotal: 1384900,
+    ratio: "1.2〜1.8倍",
     subjects: ["国語", "算数", "理科", "社会"],
     exams: [
       { name: "第1回", date: "2028-01-10", capacity: 50 },
@@ -205,6 +228,64 @@ const SCHOOLS = [
       { date: "2026-09-27", title: "学校説明会（例年・要確認）", type: "説明会" },
       { date: "2026-11-14", title: "学校説明会（例年・要確認）", type: "説明会" },
       { date: "2026-12-12", title: "入試直前説明会（例年・要確認）", type: "説明会" }
+    ]
+  },
+  {
+    id: "shohei",
+    name: "昌平中学校",
+    type: "共学",
+    deviation: 48,
+    level: "中堅校。埼玉県初のIB（国際バカロレア）MYP認定校。回・クラスで幅あり（chu-shigaku代表値 約48、T特待・Tクラスは上位／四谷・日能研基準では40台前半〜）",
+    capacity: 130,
+    entranceFee: 250000,
+    firstYearTotal: 1201800,
+    ratio: "1.0〜2.6倍",
+    subjects: ["国語", "算数", "理科", "社会"],
+    exams: [
+      { name: "第1回 一般（例年1/10頃・要確認）", date: "2028-01-10", capacity: null },
+      { name: "第1回 Tクラス（特待・例年1/11頃・要確認）", date: "2028-01-11", capacity: null },
+      { name: "第2回 一般（例年1/12頃・要確認）", date: "2028-01-12", capacity: null }
+    ],
+    features:
+      "埼玉県初のIB（国際バカロレア）MYP認定校（2017年認定）。中1〜中3全員を対象に、授業の約6割を教科横断・双方向の探究型授業で実施。「全校生徒が英語を得意科目に」を掲げるパワー・イングリッシュ・プロジェクトで、中2英検3級・中3準2級を目標とする。「手をかけ、鍛えて、送り出す」を理念に、文武両道と難関大現役合格に実績。T特待・特待制度あり。(入試回・募集内訳・偏差値は要確認)",
+    address: "埼玉県北葛飾郡杉戸町下野851",
+    station: "東武日光線 杉戸高野台駅 徒歩約15分（スクールバス約5分）／JR・東武 久喜駅よりスクールバス約10分",
+    lat: 36.0259,
+    lng: 139.7367,
+    url: "https://www.shohei.sugito.saitama.jp/contents/jhs/",
+    events: [
+      { date: "2026-06-20", title: "第3回 学校説明会（要確認）", type: "説明会" },
+      { date: "2026-07-18", title: "第4回 学校説明会・IBサイエンス体験（要確認）", type: "説明会" },
+      { date: "2026-09-05", title: "文化祭（昌平祭）1日目（要確認）", type: "文化祭" },
+      { date: "2026-09-06", title: "文化祭（昌平祭）2日目（要確認）", type: "文化祭" }
+    ]
+  },
+  {
+    id: "shiritsuurawa",
+    name: "さいたま市立浦和中学校",
+    type: "共学",
+    deviation: 63,
+    level: "公立中高一貫・適性検査型（chu-shigakuの目安63／四谷大塚80偏差値では約59）。さいたま市初の公立中高一貫校で県内公立トップ級。私立の4科偏差値とは基準が異なる点に注意",
+    capacity: 80,
+    entranceFee: 0,
+    firstYearTotal: 0,
+    ratio: "例年5〜6倍前後（要確認）",
+    subjects: ["適性検査Ⅰ・Ⅱ", "適性検査Ⅲ", "作文", "面接"],
+    exams: [
+      { name: "第1次選抜（適性検査Ⅰ・Ⅱ／例年1月中旬・要確認）", date: "2028-01-08", capacity: null },
+      { name: "第2次選抜（適性検査Ⅲ・作文・面接／例年1月中〜下旬・要確認）", date: "2028-01-15", capacity: 80 }
+    ],
+    features:
+      "2007年開校の、さいたま市初の公立中高一貫校。1学年80名の少人数教育で、中学から市立浦和高校へ入試なしで全員が内部進学できる6年一貫体制。英語教育・国際理解教育に力を入れ、英語のスピーチ・ディベートや中高合同スピーチコンテスト、中3でのオーストラリア海外フィールドワークを実施。県内屈指の進学実績を誇る人気校。入試は4教科ではなく適性検査・作文・面接で、面接では英語による自己紹介もある。(日程・倍率は要確認)",
+    address: "埼玉県さいたま市浦和区元町1-28-17",
+    station: "JR京浜東北線 北浦和駅 徒歩約12〜15分",
+    lat: 35.8694,
+    lng: 139.6533,
+    url: "https://www.m-urawa.ed.jp/",
+    events: [
+      { date: "2026-09-05", title: "文化祭（高校のみ・要確認）1日目", type: "文化祭" },
+      { date: "2026-09-06", title: "文化祭（高校のみ・要確認）2日目", type: "文化祭" },
+      { date: "2026-10-17", title: "募集要項説明会（小6保護者対象・要確認）", type: "説明会" }
     ]
   }
 ];

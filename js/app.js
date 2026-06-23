@@ -91,6 +91,15 @@ function esc(s) {
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+/* 金額（円）を「1,124,000円」のように整形。0は「0円（無償）」、未登録は「—」 */
+function fmtYen(n) {
+  if (n == null || n === "") return "—";
+  const num = Number(n);
+  if (isNaN(num)) return esc(n);
+  if (num === 0) return "0円（無償）";
+  return num.toLocaleString("ja-JP") + "円";
+}
+
 /* ============================================================
    学校一覧
    ============================================================ */
@@ -207,12 +216,19 @@ function renderDetail(id) {
 
       <div class="info-block">
         <h3>基本情報</h3>
-        <div class="kv"><span class="k">偏差値</span><span class="v">${s.deviation ?? "—"} <small style="color:var(--muted);font-weight:400">（日能研R4）</small></span></div>
+        <div class="kv"><span class="k">偏差値</span><span class="v">${s.deviation ?? "—"} <small style="color:var(--muted);font-weight:400">（chu-shigaku.com）</small></span></div>
         <div class="kv"><span class="k">難易度</span><span class="v">${esc(s.level || "—")}</span></div>
         <div class="kv"><span class="k">募集人数</span><span class="v">${s.capacity ?? "—"} 名</span></div>
         <div class="kv"><span class="k">受験科目</span><span class="v">${(s.subjects || []).join("・") || "—"}</span></div>
         <div class="kv"><span class="k">自宅から</span><span class="v">${km}（直線距離）</span></div>
         <div class="kv"><span class="k">住所</span><span class="v">${esc(s.address || "—")}</span></div>
+      </div>
+
+      <div class="info-block">
+        <h3>学費・倍率</h3>
+        <div class="kv"><span class="k">入学金</span><span class="v">${fmtYen(s.entranceFee)}</span></div>
+        <div class="kv"><span class="k">初年度総額</span><span class="v">${fmtYen(s.firstYearTotal)}${s.feeNote ? ` <small style="color:var(--muted);font-weight:400">（${esc(s.feeNote)}）</small>` : ""}</span></div>
+        <div class="kv"><span class="k">2026年度倍率</span><span class="v">${esc(s.ratio || "—")}</span></div>
       </div>
 
       <div class="info-block">
@@ -324,6 +340,18 @@ function renderAddForm() {
         <input id="f_cap" type="number" step="1" placeholder="例: 120" />
       </div>
       <div class="field">
+        <label>入学金（円）</label>
+        <input id="f_fee" type="number" step="1000" placeholder="例: 250000" />
+      </div>
+      <div class="field">
+        <label>初年度総額（円・入学金を含む）</label>
+        <input id="f_total" type="number" step="1000" placeholder="例: 1124000" />
+      </div>
+      <div class="field">
+        <label>2026年度倍率</label>
+        <input id="f_ratio" type="text" placeholder="例: 1.5〜4.3倍" />
+      </div>
+      <div class="field">
         <label>受験科目（カンマ区切り）</label>
         <input id="f_sub" type="text" placeholder="例: 国語,算数,理科,社会" />
       </div>
@@ -388,6 +416,8 @@ function saveNewSchool() {
   const lng = parseFloat(document.getElementById("f_lng").value);
   const dev = parseInt(document.getElementById("f_dev").value, 10);
   const cap = parseInt(document.getElementById("f_cap").value, 10);
+  const fee = parseInt(document.getElementById("f_fee").value, 10);
+  const total = parseInt(document.getElementById("f_total").value, 10);
   const school = {
     id: "u" + Date.now(),
     name,
@@ -395,6 +425,9 @@ function saveNewSchool() {
     deviation: isNaN(dev) ? null : dev,
     level: "",
     capacity: isNaN(cap) ? null : cap,
+    entranceFee: isNaN(fee) ? null : fee,
+    firstYearTotal: isNaN(total) ? null : total,
+    ratio: document.getElementById("f_ratio").value.trim(),
     subjects: document.getElementById("f_sub").value
       .split(/[,，、]/).map((x) => x.trim()).filter(Boolean),
     exams: parseExamLines(document.getElementById("f_exam").value),
